@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>RedGifs Downloader</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="popup-header">
+    <img src="icons/icon48.png" class="popup-logo" alt="">
+    <div class="popup-title">
+      <div class="popup-name">RedGifs Downloader</div>
+      <div class="popup-version" id="version-label"></div>
+    </div>
+  </header>
+
+  <!-- =================================================================== -->
+  <!-- Section : dossier de téléchargement                                  -->
+  <!-- =================================================================== -->
+  <section class="section">
+    <h2 class="section-title">Dossier de téléchargement</h2>
+
+    <div class="preview-box">
+      <span class="preview-label">Les fichiers iront dans :</span>
+      <code class="preview-path" id="preview-path"></code>
+    </div>
+
+    <!-- Checkbox : créer /RedGifs/ -->
+    <label class="checkbox-row">
+      <input type="checkbox" id="use-subfolder">
+      <span class="checkbox-label">Créer un sous-dossier <code>/RedGifs/</code></span>
+    </label>
+
+    <!-- Checkbox + dropdown : tri temporel -->
+    <label class="checkbox-row">
+      <input type="checkbox" id="use-sort">
+      <span class="checkbox-label">Trier par :</span>
+      <select id="sort-by" class="inline-select" disabled>
+        <option value="month">mois</option>
+        <option value="week">semaine</option>
+        <option value="day">jour</option>
+      </select>
+    </label>
+
+    <div class="hint">
+      Chemin relatif au dossier <code>Téléchargements</code> de Firefox.
+    </div>
+  </section>
+
+  <!-- =================================================================== -->
+  <!-- Section : raccourcis clavier                                         -->
+  <!-- =================================================================== -->
+  <section class="section">
+    <h2 class="section-title">Raccourcis clavier</h2>
+
+    <div class="shortcut-row">
+      <span class="shortcut-label">Télécharger HD</span>
+      <div class="shortcut-controls">
+        <button class="shortcut-display" data-command="download-hd" id="sc-hd">
+          <span class="sc-keys">—</span>
+        </button>
+        <button class="shortcut-clear" data-command="download-hd" title="Supprimer ce raccourci" aria-label="Supprimer">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="shortcut-row">
+      <span class="shortcut-label">Télécharger SD</span>
+      <div class="shortcut-controls">
+        <button class="shortcut-display" data-command="download-sd" id="sc-sd">
+          <span class="sc-keys">—</span>
+        </button>
+        <button class="shortcut-clear" data-command="download-sd" title="Supprimer ce raccourci" aria-label="Supprimer">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="shortcut-hint" id="shortcut-hint">
+      Clique sur un raccourci pour le modifier, puis appuie sur la nouvelle combinaison.
+    </div>
+  </section>
+
+  <!-- Feedback -->
+  <div class="status" id="status"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+/* ---------------------------------------------------------------------------
+   styles.css — v1.2
+
+   Les boutons héritent du style natif de RedGifs (classe .sideBarItem et
+   .DownloadRgdlButton ressemble aux LikeButton/SoundButton natifs).
+   On ne customise ICI que :
+     - Les états (loading, error, pulsing)
+     - Le label "HD" / "SD" sous l'icône
+     - Le toast de feedback
+   --------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------------
+   Notre bouton dans la sideBar : rendu totalement minimaliste comme les
+   boutons natifs (Like, Sound, FS). Pas de fond, pas de bordure, juste
+   l'icône SVG en traits blancs + label.
+
+   Les <button> HTML ont par défaut un background gris + bordure + padding
+   qu'il faut explicitement reset, sinon on voit un cadre qui dénote avec
+   le reste de la sideBar.
+   --------------------------------------------------------------------------- */
+.DownloadRgdlButton {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  /* Reset complet du style natif des <button> */
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-family: inherit !important;
+  color: inherit !important;
+  cursor: pointer !important;
+  /* Pas d'effet de focus parasite */
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+.DownloadRgdlButton:focus,
+.DownloadRgdlButton:focus-visible,
+.DownloadRgdlButton:active {
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.DownloadRgdlButton .label {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #EFEEF0 !important;
+  line-height: 1 !important;
+  letter-spacing: 0.3px !important;
+  user-select: none !important;
+}
+
+/* Hover : léger effet pour feedback visuel */
+.DownloadRgdlButton:hover:not(:disabled) {
+  opacity: 0.8 !important;
+}
+
+/* Disabled = désactivé = pas encore chargé ou erreur */
+.DownloadRgdlButton:disabled {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+}
+
+/* ---------------------------------------------------------------------------
+   États spéciaux.
+   --------------------------------------------------------------------------- */
+
+/* Chargement des URLs en cours : on fait pulser tout le bouton */
+.DownloadRgdlButton.rgdl-loading {
+  animation: rgdl-pulse 1s ease-in-out infinite !important;
+}
+
+/* Erreur API : teinte rouge sur le SVG et le label */
+.DownloadRgdlButton.rgdl-error svg path {
+  stroke: #ff7a7a !important;
+}
+.DownloadRgdlButton.rgdl-error .label {
+  color: #ff7a7a !important;
+}
+
+/* Pendant le téléchargement en cours (après clic) */
+.DownloadRgdlButton.rgdl-pulsing {
+  animation: rgdl-pulse 0.6s ease-in-out infinite !important;
+}
+
+@keyframes rgdl-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ---------------------------------------------------------------------------
+   Toasts de feedback, en haut à droite.
+   --------------------------------------------------------------------------- */
+.rgdl-toast {
+  position: fixed !important;
+  top: 20px !important;
+  right: 20px !important;
+  z-index: 2147483647 !important;
+  background: rgba(20, 20, 20, 0.95) !important;
+  color: #fff !important;
+  padding: 10px 16px !important;
+  border-radius: 8px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45) !important;
+  max-width: 320px !important;
+  animation: rgdl-slide-in 200ms ease-out !important;
+  pointer-events: none !important;
+  border-left: 3px solid #4a9eff !important;
+}
+
+.rgdl-toast-error {
+  border-left-color: #ff5a5a !important;
+}
+
+@keyframes rgdl-slide-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
