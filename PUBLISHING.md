@@ -158,7 +158,7 @@ Vérifie sur https://github.com/daygaa/Redgifs-Downloader que tes fichiers appar
 ### 2.1 — Linter le code
 
 ```powershell
-npm run lint
+npm run lint:firefox
 ```
 
 Si des warnings apparaissent, corrige-les avant de signer. Les erreurs bloquantes sont rares ; les warnings courants (exemple : "permission download could be requested only when needed") sont non-bloquants.
@@ -175,7 +175,7 @@ Get-Content .env | ForEach-Object {
 }
 
 # Puis signer
-npm run sign
+npm run sign:firefox
 ```
 
 Ou en une commande :
@@ -269,7 +269,7 @@ git push
 ### 3.4 — Signer et publier
 
 ```powershell
-npm run sign
+npm run sign:firefox
 ```
 
 Attends la signature (~1 min), puis crée la release GitHub avec le nouvel XPI.
@@ -331,7 +331,7 @@ Regarde les erreurs reportées par AMO. Les plus courantes :
 
 ### L'XPI n'est pas accepté
 
-Tu as soumis en `--channel=listed` par erreur ? Il faut `unlisted` pour self-distribution. Relance `npm run sign`.
+Tu as soumis en `--channel=listed` par erreur ? Il faut `unlisted` pour self-distribution. Relance `npm run sign:firefox`.
 
 ---
 
