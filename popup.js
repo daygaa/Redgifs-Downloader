@@ -18,6 +18,7 @@ const previewPath = document.getElementById("preview-path");
 const useSubfolderCb = document.getElementById("use-subfolder");
 const useSortCb = document.getElementById("use-sort");
 const sortBySelect = document.getElementById("sort-by");
+const patchHdrCb = document.getElementById("patch-hdr");
 const versionLabel = document.getElementById("version-label");
 
 const shortcutButtons = document.querySelectorAll(".shortcut-display");
@@ -129,6 +130,23 @@ useSortCb.addEventListener("change", () => {
   saveFolderSettings();
 });
 sortBySelect.addEventListener("change", saveFolderSettings);
+
+// ============================================================================
+// 1-bis. TRAITEMENT HDR — checkbox indépendante
+// ============================================================================
+// Gère la préférence "patchHdr" qui active/désactive la conversion des metadata
+// HDR en SDR lors du téléchargement. Activée par défaut.
+
+async function loadPatchHdrSetting() {
+  const { patchHdr = true } = await browser.storage.local.get({ patchHdr: true });
+  patchHdrCb.checked = !!patchHdr;
+}
+
+async function savePatchHdrSetting() {
+  await browser.storage.local.set({ patchHdr: patchHdrCb.checked });
+}
+
+patchHdrCb.addEventListener("change", savePatchHdrSetting);
 
 // ============================================================================
 // 2. RACCOURCIS CLAVIER
@@ -400,6 +418,7 @@ async function init() {
   } catch (e) { /* ignore */ }
 
   await loadFolderSettings();
+  await loadPatchHdrSetting();
   await loadShortcuts();
   applyChromeAdjustments();
 }

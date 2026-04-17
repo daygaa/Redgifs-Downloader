@@ -83,6 +83,12 @@ Architecture:
 - If RedGifs changes the `.GifPreview` class name or the `data-feed-item-id` attribute, the extension will stop working until the selectors are updated (they are centralized in `content.js`)
 - The "direct download without dialog" behavior depends on your Firefox setting (see above)
 
+## Security
+
+All released files are scanned on VirusTotal before being published. The scan reports for the latest release are available on the [latest release page](https://github.com/daygaa/Redgifs-Downloader/releases/latest) in the release notes.
+
+The full source code is available in this repository — you can inspect it before installing, or build the extension yourself from source (see the Development section below).
+
 ## Development
 
 ```bash
@@ -107,7 +113,3 @@ web-ext sign --source-dir=. --artifacts-dir=dist \
 ## Disclaimer
 
 This extension interacts with the RedGifs public API for personal, lawful use only. Respect content creators' rights and the site's terms of service. The authors are not affiliated with RedGifs.
-
-## Virustotal link
-
-https://www.virustotal.com/gui/file-analysis/MGFmZjZkYmE2ZWYxNjVjOGQwNTEyYzY2NzljMDUzNGM6MTc3NjQ0MzU3Mw==

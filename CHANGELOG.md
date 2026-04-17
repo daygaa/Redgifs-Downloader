@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.6.0] - 2026-04
+
+### Added
+- **HDR metadata correction**: new option (enabled by default) that rewrites BT.2020/HLG or BT.2020/PQ metadata to standard BT.709 on download. Many RedGifs videos (especially iPhone uploads) carry HDR metadata despite being 8-bit encoded, causing extreme overexposure in Windows players like Films & TV or Photos. The fix is a no-reencode bit-level patch of the H.264 SPS VUI parameters — the file remains byte-identical except for 3 modified values, and the correction takes less than 50ms.
+- Debug marker: downloaded files that had their metadata patched receive a `_patched` suffix before the extension, so you can tell which files were modified. This marker can be removed later once the feature is validated in production.
+
+### Changed
+- Download flow: files are now fetched into memory before being written to disk (instead of streaming directly to the file). This is required to apply the HDR patch. Download speed remains comparable; RAM usage increases by the size of the video (temporarily, during the download).
+
 ## [1.5.0] - 2026-04
 
 ### Added

@@ -1,12 +1,12 @@
 {
   "name": "redgifs-downloader",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Firefox + Chrome extension that adds HD/SD download buttons on RedGifs videos.",
   "private": true,
   "scripts": {
     "lint:firefox": "web-ext lint --source-dir=. --self-hosted --ignore-files=dist node_modules package.json package-lock.json recon.js manifest-chrome.json updates.json PUBLISHING.md scripts",
     "build:firefox": "web-ext build --source-dir=. --artifacts-dir=dist/firefox --overwrite-dest --filename=redgifs-downloader-firefox-{version}.zip --ignore-files=dist node_modules package.json package-lock.json recon.js manifest-chrome.json updates.json PUBLISHING.md scripts",
-    "sign:firefox": "web-ext sign --source-dir=. --artifacts-dir=dist/firefox --channel=unlisted --filename=redgifs_downloader-{version}-fx.xpi --ignore-files=dist node_modules package.json package-lock.json recon.js manifest-chrome.json updates.json PUBLISHING.md scripts",
+    "sign:firefox": "web-ext sign --source-dir=. --artifacts-dir=dist/firefox --channel=unlisted --ignore-files=dist node_modules package.json package-lock.json recon.js manifest-chrome.json updates.json PUBLISHING.md scripts",
     "build:chrome": "node scripts/build-chrome.js",
     "run:firefox": "web-ext run --source-dir=. --ignore-files=dist node_modules package.json package-lock.json recon.js manifest-chrome.json updates.json PUBLISHING.md scripts"
   },
