@@ -30,20 +30,26 @@ function isoWeekNumber(date) {
   return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
 }
 
-function escapeHTML(s) {
-  return s.replace(/[&<>"']/g, ch => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[ch]));
-}
-
 function buildPreview() {
   const parts = [];
   if (useSubfolderCb.checked) parts.push("RedGifs");
   if (useSortCb.checked) parts.push(buildDateSegment(sortBySelect.value));
   const folder = parts.length ? parts.join("/") + "/" : "";
-  previewPath.innerHTML =
-    `Downloads/<span style="color:#9cd3ff">${escapeHTML(folder)}</span>` +
-    `<span style="color:#9a9aa0;font-style:italic">exemple.mp4</span>`;
+
+  // Construction DOM-safe (pas d'innerHTML) :
+  // "Downloads/" + <span.folder>folder</span> + <span.example>exemple.mp4</span>
+  previewPath.textContent = "";
+  previewPath.appendChild(document.createTextNode("Downloads/"));
+
+  const folderSpan = document.createElement("span");
+  folderSpan.className = "preview-folder";
+  folderSpan.textContent = folder;
+  previewPath.appendChild(folderSpan);
+
+  const exampleSpan = document.createElement("span");
+  exampleSpan.className = "preview-example";
+  exampleSpan.textContent = "exemple.mp4";
+  previewPath.appendChild(exampleSpan);
 }
 
 async function load() {

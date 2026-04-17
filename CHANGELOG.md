@@ -4,6 +4,10 @@
 
 ### Added
 - New branded icon (neon-style RedGifs logo inspiration)
+- **Chrome support** (Chrome, Edge, Brave, Opera, Vivaldi and other Chromium-based browsers)
+  - Shared codebase via the Mozilla `webextension-polyfill`
+  - Chrome version adapts the popup: shortcuts are read-only (Chrome API limitation), with a button to open `chrome://extensions/shortcuts`
+  - Distributed as unpacked ZIP (manual install via developer mode, no auto-updates on Chrome)
 
 ## [1.4.0] - 2026-04
 

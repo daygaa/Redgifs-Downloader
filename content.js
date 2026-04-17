@@ -38,11 +38,30 @@ const OUR_MARK = "data-rgdl-btn";
 // SVG de l'icône "download" (flèche descendante + barre), même style que RedGifs :
 // stroke blanc #EFEEF0, stroke-width 2, pas de fill, 24x24.
 // ---------------------------------------------------------------------------
-const DOWNLOAD_SVG = `
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M12 4v12m0 0l-5-5m5 5l5-5M4 20h16"
-        stroke="#EFEEF0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>`.trim();
+
+/**
+ * Construit l'icône SVG "download" (flèche bas + barre de sol) en DOM pur.
+ * Namespace SVG obligatoire — createElement normal ne marche pas pour du SVG.
+ * Retourne un élément <svg> prêt à être inséré.
+ */
+function createDownloadSvg() {
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("width", "24");
+  svg.setAttribute("height", "24");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("fill", "none");
+
+  const path = document.createElementNS(SVG_NS, "path");
+  path.setAttribute("d", "M12 4v12m0 0l-5-5m5 5l5-5M4 20h16");
+  path.setAttribute("stroke", "#EFEEF0");
+  path.setAttribute("stroke-width", "2");
+  path.setAttribute("stroke-linecap", "round");
+  path.setAttribute("stroke-linejoin", "round");
+
+  svg.appendChild(path);
+  return svg;
+}
 
 /**
  * Construit un <li class="sideBarItem"> contenant notre bouton.
@@ -63,11 +82,16 @@ function buildSideBarItem(quality, gifPreview) {
   btn.type = "button";
   btn.setAttribute("aria-label", `Download ${quality.toUpperCase()}`);
   btn.title = quality === "hd"
-    ? "Télécharger en HD (Alt+H)"
-    : "Télécharger en SD (Alt+S)";
+    ? "Télécharger en HD"
+    : "Télécharger en SD";
   btn.disabled = true;
 
-  btn.innerHTML = `${DOWNLOAD_SVG}<span class="label">${quality.toUpperCase()}</span>`;
+  // Construction DOM-safe : pas d'innerHTML.
+  btn.appendChild(createDownloadSvg());
+  const label = document.createElement("span");
+  label.className = "label";
+  label.textContent = quality.toUpperCase();
+  btn.appendChild(label);
 
   btn.addEventListener("click", (e) => {
     e.preventDefault();

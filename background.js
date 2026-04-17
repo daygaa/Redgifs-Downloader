@@ -1,26 +1,40 @@
 /**
- * background.js — Script d'arrière-plan (event page) de l'extension.
+ * background.js — Script d'arrière-plan de l'extension.
  *
  * Rôles :
  *   1. Faire les appels à api.redgifs.com pour le compte du content script
  *      (évite les soucis CORS et centralise la logique réseau).
  *   2. Déclencher les téléchargements via l'API browser.downloads.
- *   3. Écouter les raccourcis clavier (Alt+H / Alt+S) et demander au
- *      content script de l'onglet actif de lancer le téléchargement.
+ *   3. Écouter les raccourcis clavier et demander au content script de
+ *      l'onglet actif de lancer le téléchargement.
  *
  * Le content script (content.js) NE fait PAS les fetch lui-même : il envoie
  * des messages à ce background via browser.runtime.sendMessage.
+ *
+ * COMPATIBILITÉ CHROME / FIREFOX :
+ *   - Sur Firefox (event page), `browser.*` est natif → on ne charge rien de plus
+ *   - Sur Chrome (service worker), `browser` n'existe pas nativement → on charge
+ *     le polyfill Mozilla via importScripts() qui est dispo dans le SW Chrome.
+ *     Le polyfill expose `browser.*` comme wrapper Promise-based de `chrome.*`.
+ *   - Le service worker Chrome peut être tué après ~30s d'inactivité. On
+ *     persiste donc le token dans storage.local plutôt qu'en variable globale.
  */
 
-// ---------------------------------------------------------------------------
-// Cache simple pour le token temporaire RedGifs.
-// Un token dure environ 24h côté RedGifs, mais on ne cherche pas à deviner :
-// on le garde en mémoire pour la session du service worker, et on en redemande
-// un nouveau dès qu'une requête renvoie 401 (Unauthorized).
-// ---------------------------------------------------------------------------
-let cachedToken = null;
+// Chargement conditionnel du polyfill :
+//   - Sur Firefox : `browser` est défini nativement, on skip.
+//   - Sur Chrome : `browser` est undefined dans le SW, et importScripts() est
+//     disponible dans ce contexte → on charge le polyfill.
+if (typeof browser === "undefined" && typeof importScripts === "function") {
+  // eslint-disable-next-line no-undef
+  importScripts("vendor/browser-polyfill.min.js");
+}
 
 const API_BASE = "https://api.redgifs.com";
+
+// Clé de stockage pour le token temporaire.
+// Sur Chrome, le service worker meurt régulièrement et une variable globale
+// serait perdue. On passe par storage.local qui est persistant.
+const TOKEN_STORAGE_KEY = "apiToken";
 
 /**
  * Récupère un token temporaire depuis l'API RedGifs.
@@ -38,16 +52,25 @@ async function fetchTemporaryToken() {
   if (!data.token) {
     throw new Error("Token endpoint returned no token field");
   }
-  cachedToken = data.token;
-  return cachedToken;
+  // Persister dans storage (survit au kill du service worker Chrome)
+  await browser.storage.local.set({ [TOKEN_STORAGE_KEY]: data.token });
+  return data.token;
 }
 
 /**
- * Retourne le token courant en cache, ou en récupère un neuf.
+ * Retourne le token courant depuis storage, ou en récupère un neuf.
  */
 async function getToken() {
-  if (cachedToken) return cachedToken;
+  const stored = await browser.storage.local.get(TOKEN_STORAGE_KEY);
+  if (stored[TOKEN_STORAGE_KEY]) return stored[TOKEN_STORAGE_KEY];
   return await fetchTemporaryToken();
+}
+
+/**
+ * Invalide le token stocké (à appeler sur 401).
+ */
+async function invalidateToken() {
+  await browser.storage.local.remove(TOKEN_STORAGE_KEY);
 }
 
 /**
@@ -72,7 +95,7 @@ async function fetchGifMetadata(id) {
 
   if (res.status === 401) {
     // Token expiré ou invalidé → on en prend un neuf et on retente.
-    cachedToken = null;
+    await invalidateToken();
     token = await fetchTemporaryToken();
     res = await doFetch();
   }

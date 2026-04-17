@@ -23,8 +23,20 @@ const versionLabel = document.getElementById("version-label");
 const shortcutButtons = document.querySelectorAll(".shortcut-display");
 const clearButtons = document.querySelectorAll(".shortcut-clear");
 const shortcutHint = document.getElementById("shortcut-hint");
+const openChromeShortcutsBtn = document.getElementById("open-chrome-shortcuts");
 
 const statusEl = document.getElementById("status");
+
+// ============================================================================
+// Détection navigateur
+// ============================================================================
+// Chrome n'expose pas browser.commands.update() ni .reset() : les raccourcis
+// ne peuvent être modifiés/supprimés que par l'utilisateur via
+// chrome://extensions/shortcuts. On détecte le navigateur pour adapter l'UI.
+//
+// Méthode : sur Firefox, browser.runtime.getBrowserInfo() existe ; pas sur Chrome.
+// On check aussi la présence de browser.commands.update spécifiquement.
+const IS_CHROME = typeof browser.commands.update !== "function";
 
 // ============================================================================
 // 1. CHEMIN DE TÉLÉCHARGEMENT — calcul & aperçu
@@ -69,15 +81,21 @@ function buildPreview() {
   if (useSubfolderCb.checked) parts.push("RedGifs");
   if (useSortCb.checked) parts.push(buildDateSegment(sortBySelect.value));
   const folder = parts.length ? parts.join("/") + "/" : "";
-  previewPath.innerHTML =
-    `Downloads/<span style="color:#9cd3ff">${escapeHTML(folder)}</span>` +
-    `<span style="color:#9a9aa0;font-style:italic">exemple.mp4</span>`;
-}
 
-function escapeHTML(s) {
-  return s.replace(/[&<>"']/g, ch => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-  }[ch]));
+  // Construction DOM-safe (pas d'innerHTML) :
+  // "Downloads/" + <span.folder>folder</span> + <span.example>exemple.mp4</span>
+  previewPath.textContent = "";
+  previewPath.appendChild(document.createTextNode("Downloads/"));
+
+  const folderSpan = document.createElement("span");
+  folderSpan.className = "preview-folder";
+  folderSpan.textContent = folder;
+  previewPath.appendChild(folderSpan);
+
+  const exampleSpan = document.createElement("span");
+  exampleSpan.className = "preview-example";
+  exampleSpan.textContent = "exemple.mp4";
+  previewPath.appendChild(exampleSpan);
 }
 
 async function loadFolderSettings() {
@@ -171,9 +189,17 @@ function renderShortcut(btn, shortcut) {
     // Clear button désactivé si déjà vide
     if (clearBtn) clearBtn.disabled = true;
   } else {
+    // Construction DOM-safe des <kbd> : "Ctrl+Shift+H" → <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>H</kbd>
+    span.textContent = "";
     const parts = shortcut.split("+");
-    span.innerHTML = parts.map(p => `<kbd>${escapeHTML(p)}</kbd>`).join(" + ");
-    if (clearBtn) clearBtn.disabled = false;
+    parts.forEach((part, i) => {
+      if (i > 0) span.appendChild(document.createTextNode(" + "));
+      const kbd = document.createElement("kbd");
+      kbd.textContent = part;
+      span.appendChild(kbd);
+    });
+    // Sur Chrome, on garde le clear toujours désactivé (API non supportée).
+    if (clearBtn) clearBtn.disabled = IS_CHROME;
   }
 }
 
@@ -267,40 +293,46 @@ function onCaptureClickOutside(e) {
   stopCapture(capturingBtn);
 }
 
-// Listeners sur boutons d'affichage
-shortcutButtons.forEach(btn => {
-  btn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    if (btn.classList.contains("capturing")) stopCapture(btn);
-    else startCapture(btn);
+// Listeners sur boutons d'affichage — uniquement sur Firefox
+// (sur Chrome, les raccourcis ne se modifient que via chrome://extensions/shortcuts)
+if (!IS_CHROME) {
+  shortcutButtons.forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (btn.classList.contains("capturing")) stopCapture(btn);
+      else startCapture(btn);
+    });
   });
-});
+}
 
 /**
  * Suppression d'un raccourci : on appelle browser.commands.update avec
  * shortcut = "" ce qui désactive complètement la commande.
+ * Inopérant sur Chrome (API absente).
  */
-clearButtons.forEach(clearBtn => {
-  clearBtn.addEventListener("click", async (e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (clearBtn.disabled) return;
+if (!IS_CHROME) {
+  clearButtons.forEach(clearBtn => {
+    clearBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (clearBtn.disabled) return;
 
-    const commandName = clearBtn.dataset.command;
-    // Si une capture est en cours sur ce raccourci, on l'annule d'abord
-    const displayBtn = document.querySelector(`.shortcut-display[data-command="${commandName}"]`);
-    if (displayBtn && displayBtn.classList.contains("capturing")) {
-      stopCapture(displayBtn);
-    }
+      const commandName = clearBtn.dataset.command;
+      // Si une capture est en cours sur ce raccourci, on l'annule d'abord
+      const displayBtn = document.querySelector(`.shortcut-display[data-command="${commandName}"]`);
+      if (displayBtn && displayBtn.classList.contains("capturing")) {
+        stopCapture(displayBtn);
+      }
 
-    try {
-      await browser.commands.update({ name: commandName, shortcut: "" });
-      await loadShortcuts();
-    } catch (err) {
-      showStatus(`✗ ${err.message}`, "err");
-    }
+      try {
+        await browser.commands.update({ name: commandName, shortcut: "" });
+        await loadShortcuts();
+      } catch (err) {
+        showStatus(`✗ ${err.message}`, "err");
+      }
+    });
   });
-});
+}
 
 // ============================================================================
 // 3. STATUS
@@ -317,6 +349,48 @@ function showStatus(text, kind = "ok") {
 }
 
 // ============================================================================
+// 4. ADAPTATION CHROME
+// ============================================================================
+/**
+ * Sur Chrome, les raccourcis ne peuvent pas être modifiés par l'extension.
+ * On adapte l'UI : display des raccourcis en lecture seule, bouton clear grisé,
+ * et on affiche un bouton qui redirige vers chrome://extensions/shortcuts.
+ */
+function applyChromeAdjustments() {
+  if (!IS_CHROME) return;
+
+  // 1. Rendre les boutons d'affichage non-cliquables (plus de capture)
+  shortcutButtons.forEach(btn => {
+    btn.style.cursor = "default";
+    btn.title = "Raccourci en lecture seule sur Chrome. Utilise le bouton ci-dessous pour modifier.";
+    // Empêche le hover d'indiquer "clickable"
+    btn.classList.add("readonly");
+  });
+
+  // 2. Griser les boutons clear avec tooltip explicatif
+  clearButtons.forEach(clearBtn => {
+    clearBtn.disabled = true;
+    clearBtn.title = "Impossible de supprimer un raccourci depuis le popup sur Chrome. Utilise le bouton ci-dessous.";
+  });
+
+  // 3. Adapter le hint
+  shortcutHint.textContent = "Les raccourcis ne peuvent être modifiés depuis les paramètres Chrome.";
+
+  // 4. Afficher et activer le bouton "Modifier les raccourcis"
+  openChromeShortcutsBtn.style.display = "block";
+  openChromeShortcutsBtn.addEventListener("click", async () => {
+    // chrome:// URLs ne peuvent pas être ouvertes via window.open ou window.location
+    // depuis un popup — il faut passer par l'API tabs.
+    try {
+      await browser.tabs.create({ url: "chrome://extensions/shortcuts" });
+      window.close();
+    } catch (err) {
+      showStatus(`✗ Impossible d'ouvrir la page : ${err.message}`, "err");
+    }
+  });
+}
+
+// ============================================================================
 // Init
 // ============================================================================
 async function init() {
@@ -327,6 +401,7 @@ async function init() {
 
   await loadFolderSettings();
   await loadShortcuts();
+  applyChromeAdjustments();
 }
 
 init();

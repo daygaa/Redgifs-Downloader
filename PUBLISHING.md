@@ -124,22 +124,32 @@ WEB_EXT_API_SECRET=ton_secret_hexa_tres_long
 
 Remplace par tes vraies valeurs de l'étape 1.3. Le `.gitignore` qu'on a préparé empêche ce fichier d'être commit.
 
-### 1.8 — Activer GitHub Pages pour `updates.json`
+### 1.8 — Premier commit et push
 
-1. Dans ton dépôt GitHub → **Settings** → **Pages**
-2. Source : **Deploy from a branch**
-3. Branch : `main` / `master`, dossier `/ (root)`
-4. Clique **Save**
-5. Attend 1-2 minutes. GitHub affichera l'URL : `https://daygaa.github.io/Redgifs-Downloader/`
-6. Vérifie que `https://daygaa.github.io/Redgifs-Downloader/updates.json` est accessible
-
-### 1.9 — Premier commit et push
+GitHub Pages a besoin qu'une branche existe sur le dépôt pour pouvoir la servir — on fait donc le premier push maintenant, **avant** d'activer Pages.
 
 ```powershell
 git add .
 git commit -m "Initial commit: v1.5.0"
 git push origin main
 ```
+
+Si Git te demande de configurer ton identité la première fois :
+```powershell
+git config --global user.email "ton-email@exemple.com"
+git config --global user.name "daygaa"
+```
+
+Vérifie sur https://github.com/daygaa/Redgifs-Downloader que tes fichiers apparaissent bien.
+
+### 1.9 — Activer GitHub Pages pour `updates.json`
+
+1. Dans ton dépôt GitHub → **Settings** → **Pages**
+2. Source : **Deploy from a branch**
+3. Branch : `main` (maintenant qu'elle existe), dossier `/ (root)`
+4. Clique **Save**
+5. Attend 1-2 minutes (GitHub doit builder le site la première fois). GitHub affichera l'URL : `https://daygaa.github.io/Redgifs-Downloader/`
+6. Vérifie que `https://daygaa.github.io/Redgifs-Downloader/updates.json` est accessible — tu dois voir le JSON affiché brut dans le navigateur, pas une erreur 404.
 
 ---
 
@@ -331,3 +341,82 @@ Tu as soumis en `--channel=listed` par erreur ? Il faut `unlisted` pour self-dis
 - AMO developer hub : https://addons.mozilla.org/developers/
 - Format `updates.json` : https://extensionworkshop.com/documentation/manage/updating-your-extension/
 - Exemple de référence : https://github.com/besuper/TwitchNoSub (même méthode que nous)
+
+---
+
+## PHASE 4 : Build Chrome (bonus)
+
+Le portage Chrome utilise le **même code source** que Firefox. Les différences sont gérées automatiquement :
+- Un `manifest-chrome.json` séparé (service_worker au lieu d'event page, pas d'update_url)
+- Un polyfill Mozilla (`vendor/browser-polyfill.min.js`) qui expose `browser.*` sur Chrome
+- Le popup détecte Chrome et adapte l'UI des raccourcis (lecture seule + bouton redirigeant vers `chrome://extensions/shortcuts`)
+
+**Limitation Chrome** : pas de mises à jour automatiques. Google a bloqué les `update_url` externes en 2018. Les utilisateurs devront re-télécharger la nouvelle version manuellement.
+
+### 4.1 — Builder le ZIP Chrome
+
+```powershell
+npm run build:chrome
+```
+
+Ce qui se passe :
+- Le script `scripts/build-chrome.js` copie les fichiers nécessaires dans `dist/chrome/staging/`
+- Renomme `manifest-chrome.json` → `manifest.json`
+- Zippe le tout dans `dist/chrome/redgifs-downloader-chrome-X.Y.Z.zip`
+
+### 4.2 — Tester en local
+
+Dans Chrome (ou Edge / Brave / Opera) :
+1. Extrais le ZIP dans un dossier permanent (ex : `C:\Dev\redgifs-downloader-chrome\`)
+2. Va sur `chrome://extensions/`
+3. Active **Developer mode** (toggle en haut à droite)
+4. Clique **Load unpacked** et sélectionne le dossier extrait
+5. L'extension apparaît et est fonctionnelle
+
+### 4.3 — Publier le ZIP Chrome dans la release GitHub
+
+À chaque release, attache **DEUX** fichiers :
+- `redgifs-downloader-firefox-X.Y.Z.xpi` (signé AMO)
+- `redgifs-downloader-chrome-X.Y.Z.zip` (dev mode)
+
+Exemple en CLI :
+```powershell
+gh release create v1.5.0 `
+  dist/firefox/redgifs_downloader-1.5.0-fx.xpi `
+  dist/chrome/redgifs-downloader-chrome-1.5.0.zip `
+  --title "v1.5.0" --notes-file release-notes.md
+```
+
+Ou depuis l'interface web GitHub, tu ajoutes simplement les deux fichiers comme assets de la release.
+
+### 4.4 — Workflow complet pour une release
+
+Pour chaque nouvelle version, après avoir bump la version dans `manifest.json` **et** `manifest-chrome.json` **et** `package.json` :
+
+```powershell
+# 1. Firefox : sign + build (AMO)
+npm run sign:firefox
+
+# 2. Chrome : build local
+npm run build:chrome
+
+# 3. Release GitHub avec les 2 artefacts
+gh release create v1.6.0 `
+  dist/firefox/redgifs_downloader-1.6.0-fx.xpi `
+  dist/chrome/redgifs-downloader-chrome-1.6.0.zip `
+  --title "v1.6.0" --notes "..."
+
+# 4. Update updates.json pour Firefox auto-update
+# (éditer le fichier manuellement puis commit)
+git add updates.json
+git commit -m "updates.json: release 1.6.0"
+git push
+```
+
+### Bump de version : trois endroits à ne pas oublier
+
+1. `manifest.json` (Firefox)
+2. `manifest-chrome.json` (Chrome)
+3. `package.json`
+
+Ces trois fichiers doivent toujours avoir la même version. Un petit script `bump-version.js` pourrait être ajouté plus tard pour automatiser cela, mais pour l'instant c'est à faire à la main.

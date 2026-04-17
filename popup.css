@@ -86,6 +86,15 @@ body {
   font-size: 12px;
 }
 
+.preview-folder {
+  color: #9cd3ff;
+}
+
+.preview-example {
+  color: #9a9aa0;
+  font-style: italic;
+}
+
 /* ----------------------------- Checkboxes ------------------------------ */
 .checkbox-row {
   display: flex;
@@ -276,6 +285,38 @@ body {
   font-size: 11px;
   color: var(--text-muted);
   line-height: 1.5;
+}
+
+/* ----------------------------- Mode Chrome (lecture seule) ----------- */
+.shortcut-display.readonly {
+  cursor: default !important;
+}
+
+.shortcut-display.readonly:hover {
+  background: var(--bg-elev);
+  border-color: var(--border);
+}
+
+.shortcut-link-btn {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: var(--bg-elev);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 120ms;
+}
+
+.shortcut-link-btn:hover {
+  background: var(--bg-input);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* ----------------------------- Status ---------------------------------- */

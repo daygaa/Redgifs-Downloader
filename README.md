@@ -17,17 +17,33 @@ Built with vanilla JavaScript, no dependencies.
 
 ## Installation
 
+### Firefox
+
 1. Download the latest `.xpi` file from the [Releases page](https://github.com/daygaa/Redgifs-Downloader/releases/latest).
 2. Drag and drop the `.xpi` onto any Firefox window.
 3. Click **Add** in the confirmation popup.
 
 The extension updates itself automatically from subsequent GitHub releases — no manual reinstall needed.
 
-### Required Firefox setting
+### Chrome / Edge / Brave / Opera / Vivaldi
 
-For downloads to go directly to your Downloads folder without a "Save As" dialog every time, make sure this option is enabled:
+Chrome doesn't allow extensions to be installed directly from a file outside its Web Store, so we use developer mode:
 
-`about:preferences` → **General** → **Files and Applications** → check **Save files to [Downloads]** (rather than "Always ask me where to save files").
+1. Download the latest `redgifs-downloader-chrome-X.Y.Z.zip` from the [Releases page](https://github.com/daygaa/Redgifs-Downloader/releases/latest).
+2. Extract the ZIP to a permanent folder on your computer (e.g. `C:\Extensions\Redgifs-Downloader\`). **Don't delete this folder** — Chrome loads the extension from it.
+3. Open `chrome://extensions/` (or `edge://extensions/`, `brave://extensions/`, etc.).
+4. Enable **Developer mode** (toggle in the top right).
+5. Click **Load unpacked** and select the extracted folder.
+6. The extension is now installed.
+
+**Automatic updates are NOT available on Chrome** (Google has disabled external update URLs since 2018). To update, download the new ZIP, extract it over the existing folder, and click the **Reload** button on the extension card in `chrome://extensions/`.
+
+### Required browser setting
+
+For downloads to go directly to your Downloads folder without a "Save As" dialog every time:
+
+- **Firefox**: `about:preferences` → **General** → **Files and Applications** → check **Save files to [Downloads]** (rather than "Always ask me where to save files").
+- **Chrome / Edge / Brave**: `chrome://settings/downloads` → uncheck **Ask where to save each file before downloading**.
 
 ## Usage
 
