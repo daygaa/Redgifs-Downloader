@@ -107,3 +107,7 @@ web-ext sign --source-dir=. --artifacts-dir=dist \
 ## Disclaimer
 
 This extension interacts with the RedGifs public API for personal, lawful use only. Respect content creators' rights and the site's terms of service. The authors are not affiliated with RedGifs.
+
+## Virustotal link
+
+https://www.virustotal.com/gui/file-analysis/MGFmZjZkYmE2ZWYxNjVjOGQwNTEyYzY2NzljMDUzNGM6MTc3NjQ0MzU3Mw==
